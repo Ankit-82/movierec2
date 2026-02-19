@@ -3,6 +3,9 @@ import pickle
 import pandas as pd
 import requests
 
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
 def fetch_poster(movie_id):
     responce = requests.get('https://api.themoviedb.org/3/movie/{}?api_key=8265bd1679663a7ea12ac168da84d2e8&language=en-US'.format(movie_id))
     data =responce.json()
@@ -29,7 +32,12 @@ def recommend(movie):
 movies_dict = pickle.load(open('movie_dict.pkl', 'rb'))
 movies = pd.DataFrame(movies_dict)
 
-similarity = pickle.load(open('similarity.pkl', 'rb'))
+# Create similarity matrix dynamically
+cv = CountVectorizer(max_features=5000, stop_words='english')
+vectors = cv.fit_transform(movies['tags']).toarray()
+similarity = cosine_similarity(vectors)
+
+# similarity = pickle.load(open('similarity.pkl', 'rb'))
 
 st.title('Movie Recommender System')
 
@@ -57,3 +65,4 @@ if st.button('Recommend'):
     with col5:
         st.text(names[4])
         st.image(posters[4])
+
